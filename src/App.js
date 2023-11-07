@@ -9,40 +9,23 @@ import AllData from "./components/alldata";
 import NavBar from "./components/navbar";
 import { UserContext } from "./components/context";
 import "bootstrap/dist/css/bootstrap.min.css";
+import Login from "./components/login";
 
 function Spa() {
   return (
     <HashRouter>
-      <NavBar />
       <UserContext.Provider
         value={{
-          users: [
-            {
-              name: "abel",
-              email: "abel@mit.edu",
-              password: "secret",
-              balance: 100,
-            },
-          ],
-          submissions: [
-            {
-              type: "New User",
-              data: {
-                name: "abel",
-                email: "abel@mit.edu",
-                password: "secret",
-                balance: 100,
-              },
-            },
-          ],
+          loggedInUser: undefined,
         }}
       >
+        <NavBar />
         <Routes>
           <Route path="/" exact element={<Home />} />
           <Route path="/CreateAccount/" element={<CreateAccount />} />
           <Route path="/deposit/" element={<Deposit />} />
           <Route path="/withdraw/" element={<Withdraw />} />
-          <Route path="/alldata/" element={<AllData />} />
+          <Route path="/login/" element={<Login />} />
         </Routes>
       </UserContext.Provider>
     </HashRouter>

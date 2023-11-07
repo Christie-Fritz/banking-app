@@ -1,17 +1,15 @@
-import React, { useState, useContext } from 'react';
-import { UserContext } from './context';
-import Card from './context';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState, useContext } from "react";
+import Card, { UserContext } from "./context";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-function CreateAccount() {
+function Login() {
   const [show, setShow] = useState(true);
   const [status, setStatus] = useState("");
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const userContext = useContext(UserContext);
-  const nav = useNavigate();
+  const navigate = useNavigate();
 
   function validate(field, label) {
     if (!field) {
@@ -22,76 +20,57 @@ function CreateAccount() {
     return true;
   }
 
-  function validateLength(field, label) {
-    if (field.length < 8) {
-      setStatus('Error: ' + label + ' is not 8 characters');
-      setTimeout(() => setStatus(""), 3000);
-      return false;
+  async function handleLogin() {
+    if (!validate(email, "email")) {
+        return;
     }
-    return true;
-  }
-
-  async function handleCreate() {
-    if (!validate(name, "name")) return;
-
-    if (!validate(email, "email")) return;
-
-    if (!validate(password, "password")) return;
-
-    if (!validateLength(password, 'password')) return;
+    if (!validate(password, "password")) {
+        return;
+    }
 
     try {
-      const request = await axios.post('http://localhost:1337/api/auth/local/register', {
-        username: name,
-        email: email,
+      const request = await axios.post('http://localhost:1337/api/auth/local', {
+        identifier: email,
         password: password,
-        balance: 500,
       });
-
+    
       const userToLogin = request.data;
+      console.log(userToLogin);
+
+      if (!validate(userToLogin, "incorrect email and password")) {
+          return;
+      }
 
       userContext.loggedInUser = userToLogin;
 
       setShow(false);
 
-      nav('/');
+      navigate('/');
     } catch (e) {
       setStatus(e.message);
       setTimeout(() => setStatus(''), 3000);
     }
   }
-
+ 
   function clearForm() {
-    setName("");
     setEmail("");
     setPassword("");
     setShow(true);
   }
 
   function isDisabled() {
-    if (!name && !email && !password) return true;
+    if (!email && !password) return true;
     return false;
   }
 
   return (
     <Card
       bgcolor="primary"
-      header="Create Account"
+      header="Login"
       status={status}
       body={
         show ? (
           <>
-            Name
-            <br />
-            <input
-              type="input"
-              className="form-control"
-              id="name"
-              placeholder="Enter name"
-              value={name}
-              onChange={(e) => setName(e.currentTarget.value)}
-            />
-            <br />
             Email address
             <br />
             <input
@@ -117,18 +96,16 @@ function CreateAccount() {
             <button
               type="submit"
               className="btn btn-light"
-              onClick={handleCreate}
+              onClick={handleLogin}
               disabled={isDisabled()}
             >
-              Create Account
+              Login
             </button>
           </>
         ) : (
           <>
             <h5>Success</h5>
-            <button type="submit" className="btn btn-light" onClick={clearForm}>
-              Add another account
-            </button>
+            {/* TODO style things later or something */}
           </>
         )
       }
@@ -136,4 +113,4 @@ function CreateAccount() {
   );
 }
 
-export default CreateAccount;
+export default Login;

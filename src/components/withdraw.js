@@ -1,16 +1,24 @@
-import React, {useState, useContext} from 'react';
+import React, {useEffect, useState, useContext} from 'react';
 import { UserContext } from './context';
 import Card from './context';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 function Withdraw() {
   const [show, setShow] = useState(true);
   const [withdraw, setWithdraw] = useState("");
   const [status, setStatus] = useState("");
   const ctx = useContext(UserContext);
-  const abel = ctx.users.find(x => x.name === 'abel');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!ctx?.loggedInUser?.jwt) {
+      navigate('/');
+    }
+  }, [ctx, navigate]);
 
   function validate(field, label) {
-    if (!field || isNaN(field) || abel.balance < field) {
+    if (!field || isNaN(field) || ctx.loggedInUser.user.balance < field) {
       setStatus("Error: " + label);
       setTimeout(() => setStatus(""), 3000);
       return false;
@@ -18,12 +26,25 @@ function Withdraw() {
     return true;
   }
 
-  function handlewithdraw() {
-    console.log(withdraw);
+  async function handlewithdraw() {
     if (!validate(withdraw, "withdraw")) return;
-    ctx.users = [{...abel, balance: abel.balance - withdraw*1}];
-    ctx.submissions.push({type: 'New Withdraw', data: {amount: withdraw*1}});
-    setShow(false);
+
+    try {
+      const request = await axios.put(`http://localhost:1337/api/users/${ctx.loggedInUser.user.id}`, {
+        balance: ctx.loggedInUser.user.balance*1 - withdraw*1
+      }, {
+        headers: {
+          Authorization: `Bearer ${ctx.loggedInUser.jwt}`
+        }
+      });
+
+      ctx.loggedInUser.user.balance = request.data.balance;
+      
+      setShow(false);
+    } catch (e) {
+      setStatus(e.message);
+      setTimeout(() => setStatus(''), 3000);
+    }
   }
 
   function clearForm() {
@@ -44,7 +65,7 @@ function Withdraw() {
       body={
         show ? (
           <>
-            Balance: ${abel.balance}
+            Balance: ${ctx?.loggedInUser?.user?.balance}
             <br />
             Withdraw
             <br />

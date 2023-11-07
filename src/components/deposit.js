@@ -1,14 +1,22 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Card from "./context";
 import { UserContext } from "./context";
 import { useContext } from "react";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Deposit() {
   const [show, setShow] = useState(true);
   const [deposit, setDeposit] = useState("");
   const [status, setStatus] = useState("");
   const ctx = useContext(UserContext);
-  const abel = ctx.users.find(x => x.name === 'abel');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (ctx && !ctx.loggedInUser?.jwt) {
+      navigate('/');
+    }
+  }, [ctx, navigate]);
 
   function validate(field, label) {
     if (!field || isNaN(field) || field < 0) {
@@ -19,12 +27,26 @@ function Deposit() {
     return true;
   }
 
-  function handleDeposit() {
-    console.log(deposit);
+  async function handleDeposit() {
     if (!validate(deposit, "deposit")) return;
-    ctx.users = [{...abel, balance: abel.balance + deposit*1}];
-    ctx.submissions.push({type: 'New Deposit', data: {amount: deposit*1}});
-    setShow(false);
+
+    try {
+      const request = await axios.put(`http://localhost:1337/api/users/${ctx.loggedInUser.user.id}`, {
+        balance: ctx.loggedInUser.user.balance*1 + deposit*1
+      }, {
+        headers: {
+          Authorization: `Bearer ${ctx.loggedInUser.jwt}`
+        }
+      });
+
+      ctx.loggedInUser.user.balance = request.data.balance;
+      
+      setShow(false);
+    } catch (e) {
+      setStatus(e.message);
+      setTimeout(() => setStatus(''), 3000);
+    }
+
   }
 
   function clearForm() {
@@ -45,7 +67,7 @@ function Deposit() {
       body={
         show ? (
           <>
-            Balance: ${abel.balance}
+            Balance: ${ctx?.loggedInUser?.user?.balance}
             <br />
             Deposit
             <br />

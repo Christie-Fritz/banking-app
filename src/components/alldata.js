@@ -8,7 +8,7 @@ function AllData() {
     <Card>
       <Card.Body>
         Users
-        <table class="table table-dark">
+        <table className="table table-dark">
           <thead>
             <tr>
               <th scope="col">Name</th>
@@ -28,7 +28,7 @@ function AllData() {
         </table>
         <br />
         Submissions
-        <table class="table table-dark">
+        <table className="table table-dark">
           <thead>
             <tr>
               <th scope="col">Type</th>
